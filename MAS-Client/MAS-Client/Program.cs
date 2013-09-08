@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Reflection;
 
 
 namespace MAS_Client
@@ -69,6 +70,49 @@ namespace MAS_Client
                         Console.WriteLine("Received: {0}", responseData);
                     }                    
                 }
+            }
+        }
+
+        private void ExecuteCommand(String commandInput)
+        {
+            String commandString = commandInput.Trim();
+            int spacePosition = commandString.IndexOf(' ');
+            String command;
+            String[] commandArgs = null;
+
+            if (spacePosition == -1)
+            {
+                command = commandString;
+            }
+            else
+            {
+                command = commandString.Substring(0, spacePosition);
+                commandArgs = commandString.Substring(spacePosition + 1).Split(' ');
+            }
+
+            try
+            {
+                Console.WriteLine("Run cmd: " + commandString);
+                typeof(Command).GetMethod(command).Invoke(null, commandArgs);
+            }
+            catch (TargetParameterCountException e)
+            {
+                Console.WriteLine(" -- Wrong parameter count");
+                Console.WriteLine(e.ToString());
+            }
+            catch (NullReferenceException e)
+            {
+                // No such command.
+                Console.WriteLine(" -- Command not found");
+                Console.WriteLine(e.ToString());
+            }
+            catch (AmbiguousMatchException e)
+            {
+                // This happens if the Command class contains a command two times with different
+                // parameters. To support this, we need to use "GetMethods()" instead of "GetMethod()"
+                // to receive all available methods.
+                Console.WriteLine(" -- Command not unique");
+                Console.WriteLine(e.ToString());
             }
         }
 
