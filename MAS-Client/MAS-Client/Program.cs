@@ -18,19 +18,37 @@ namespace MAS_Client
 
 
         static void Main(string[] args)
-        {
-            //SendMessageW(this.Handle, WM_APPCOMMAND, this.Handle, (IntPtr)APPCOMMAND_VOLUME_MUTE);
+        {         
 
-            Console.WriteLine(Command.getOSPlatform());
-            Command.SetWallpaper(@"C:\Users\SStalker\Pictures\wallbase cc\wallpaper-1353834.jpg");
+            /*Console.WriteLine(Command.getOSPlatform());
+            Command.setWallpaper(@"C:\Users\SStalker\Pictures\wallbase cc\wallpaper-1353834.jpg");
 
-            Command.startProgram("notepad.exe",null);
+            for (int i = 0; i < 100; i++)
+            {
+                //Command.startProgram("notepad.exe", null);
+            }
+            Console.WriteLine(Command.getWallpaper());
 
-            Console.WriteLine(Command.GetWallpaper());
-
-            Console.WriteLine(Command.GetActiveWindowTitle());
+            Console.WriteLine(Command.getActiveWindowTitle());
 
             Command.getOpenPrograms();
+
+            Command.ShowNetworkInterfaces();
+            //Console.WriteLine(Command.getHandleFromWindow("Rechner"));
+
+            int specialHandle = Command.getHandleFromWindow("Editor");
+            System.Threading.Thread.Sleep(5000);
+            Command.setActiveWindow(specialHandle);
+            Command.sendMessageToActiveWindow("Hallo ");
+            System.Threading.Thread.Sleep(2000);
+            Command.sendMessageToActiveWindow("Chris!!! :D");
+            //Command.sendMessageToActiveWindow("{DELETE}");
+            
+
+            Command.getNetworkComputers();
+            */
+
+
             Connect(serverIP);
             
             if (client != null)
@@ -42,12 +60,12 @@ namespace MAS_Client
                         // Buffer to store the response bytes.
                         data = new Byte[256];
 
-                        // String to store the response ASCII representation.
+                        // String to store the response Unicode representation.
                         String responseData = String.Empty;
 
                         // Read the first batch of the TcpServer response bytes.
                         Int32 bytes = stream.Read(data, 0, data.Length);
-                        responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+                        responseData = System.Text.Encoding.Unicode.GetString(data, 0, bytes);
                         Console.WriteLine("Received: {0}", responseData);
                     }                    
                 }
