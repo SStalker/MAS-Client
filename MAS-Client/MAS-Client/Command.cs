@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Windows.Forms;
 using System.Net.Sockets;
-
+using System.ComponentModel;
 
 
 namespace MAS_Client
@@ -238,10 +238,40 @@ namespace MAS_Client
             }
         }
 
+        public static void DownloadFile(String urlToFile,String localPath)
+        {
+            WebClient webClient = new WebClient();
+            webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(Completed);
+            webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
+            Console.WriteLine("Start download from: {0} to {1}", urlToFile, localPath);
+            webClient.DownloadFileAsync(new Uri(urlToFile), localPath);
+        }
+
         // Turns an string to Byte[]
         private static Byte[] ToNetStr(string text)
         {
             return System.Text.Encoding.Unicode.GetBytes(text);
+        }
+        static int counter = 0;
+
+        private static void ProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+
+            if ((e.ProgressPercentage % 10) == 0 && e.ProgressPercentage != 0 && e.ProgressPercentage != counter)
+            {
+                counter = e.ProgressPercentage;
+                Console.WriteLine("{0}% downloaded. {1} MB received.", e.ProgressPercentage, e.BytesReceived / 1024 / 1024);
+                
+            }
+          
+
+            
+            
+        }
+
+        private static void Completed(object sender, AsyncCompletedEventArgs e)
+        {
+            Console.WriteLine("Download completed!");
         }
     }
 }

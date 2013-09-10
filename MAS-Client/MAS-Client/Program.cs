@@ -23,10 +23,10 @@ namespace MAS_Client
 
         static void Main(string[] args)
         {
-
+            Command.DownloadFile("https://downloads.archlinux.de/iso/2013.09.01/archlinux-2013.09.01-dual.iso", @"C:\batch\test.iso");
             //Command.killProcess("calc");
             //Command.GetIPAdress();
-            Command.NetworkScan("192.168.2.4");
+            //Command.NetworkScan("192.168.2.4");
             //Command.SetWallpaper(@"C:\Users\SStalker\Pictures\Route_66__XL_by_nuaHs.jpg");
             /*Console.WriteLine(Command.getOSPlatform());
             Command.setWallpaper(@"C:\Users\SStalker\Pictures\wallbase cc\wallpaper-1353834.jpg");
