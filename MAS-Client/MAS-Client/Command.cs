@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
-using System.Windows.Forms; 
+using System.Windows.Forms;
+using System.Net.Sockets;
 
 
 
@@ -16,6 +17,13 @@ namespace MAS_Client
 {
     class Command
     {
+        static NetworkStream stream;
+
+        public static void setStream(ref NetworkStream s)
+        {
+            stream = s;
+        }
+
         const int MAX_PATH = 260;
         const int SPI_GETDESKWALLPAPER = 0x73;
         const int SPI_SETDESKWALLPAPER = 0x14;
@@ -52,10 +60,10 @@ namespace MAS_Client
         static extern bool SetForegroundWindow(IntPtr hWnd);
 
         // Not ready to gooooo
-        /*public static List<string> getIPAdress()
+        public static void GetIPAdress()
         {
             IPHostEntry host;
-            List<string> ips;
+            //List<string> ips;
 
             //string localIP = "?";
             host = Dns.GetHostEntry(Dns.GetHostName());
@@ -64,105 +72,32 @@ namespace MAS_Client
                 
                 if (ip.AddressFamily.ToString() == "InterNetwork")
                 {
-                    ips.Add(ip.ToString());
+                    Console.WriteLine(ip.ToString());
                 }
-            }
-            return ips;
-        }*/
-
-        public static void ShowNetworkInterfaces()
-        {
-            IPGlobalProperties computerProperties = IPGlobalProperties.GetIPGlobalProperties();
-            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
-            Console.WriteLine("Interface information for {0}.{1}     ",
-                    computerProperties.HostName, computerProperties.DomainName);
-            if (nics == null || nics.Length < 1)
-            {
-                Console.WriteLine("  No network interfaces found.");
-                return;
-            }
-
-            Console.WriteLine("  Number of interfaces .................... : {0}", nics.Length);
-            foreach (NetworkInterface adapter in nics)
-            {
-
-
-                IPInterfaceProperties properties = adapter.GetIPProperties();
-                Console.WriteLine();
-                Console.WriteLine(adapter.Description);
-                Console.WriteLine(String.Empty.PadLeft(adapter.Description.Length, '='));
-                Console.WriteLine("  Interface type .......................... : {0}", adapter.NetworkInterfaceType);
-                Console.WriteLine("  Physical Address ........................ : {0}",
-                           adapter.GetPhysicalAddress().ToString());
-                Console.WriteLine("  Operational status ...................... : {0}",
-                    adapter.OperationalStatus);
-                string versions = "";
-
-                UnicastIPAddressInformationCollection uniCol = properties.UnicastAddresses;
-
-                foreach(UnicastIPAddressInformation uniAdress in uniCol)
-                {
-                    Console.WriteLine("  IP-Adress ............................... : {0}", uniAdress.Address);
-                    Console.WriteLine("  Subnet Mask: ............................ : {0}", uniAdress.IPv4Mask);
-                    
-                }
-                // Create a display string for the supported IP versions. 
-                if (adapter.Supports(NetworkInterfaceComponent.IPv4))
-                {
-                    versions = "IPv4";
-                }
-                if (adapter.Supports(NetworkInterfaceComponent.IPv6))
-                {
-                    if (versions.Length > 0)
-                    {
-                        versions += " ";
-                    }
-                    versions += "IPv6";
-                }
-                Console.WriteLine("  IP version .............................. : {0}", versions);
-                //ShowIPAddresses(properties);
-               
-
-                // The following information is not useful for loopback adapters. 
-                if (adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback)
-                {
-                    continue;
-                }
-                Console.WriteLine("  DNS suffix .............................. : {0}",
-                    properties.DnsSuffix);
-
-                string label;
-                if (adapter.Supports(NetworkInterfaceComponent.IPv4))
-                {
-                    IPv4InterfaceProperties ipv4 = properties.GetIPv4Properties();
-                    Console.WriteLine("  MTU...................................... : {0}", ipv4.Mtu);
-                    if (ipv4.UsesWins)
-                    {
-
-                        IPAddressCollection winsServers = properties.WinsServersAddresses;
-                        if (winsServers.Count > 0)
-                        {
-                            label = "  WINS Servers ............................ :";
-                            //ShowIPAddresses(label, winsServers);
-                        }
-                    }
-                }
-
-                Console.WriteLine("  DNS enabled ............................. : {0}",
-                    properties.IsDnsEnabled);
-                Console.WriteLine("  Dynamically configured DNS .............. : {0}",
-                    properties.IsDynamicDnsEnabled);
-                Console.WriteLine("  Receive Only ............................ : {0}",
-                    adapter.IsReceiveOnly);
-                Console.WriteLine("  Multicast ............................... : {0}",
-                    adapter.SupportsMulticast);
-                //ShowInterfaceStatistics(adapter);
-
-                Console.WriteLine();
             }
         }
 
-        public static void sendMessageToActiveWindow(string message) 
+        public static void NetworkScan(String sourceIP) 
+        {
+            int lastDotPos = sourceIP.LastIndexOf('.');
+            sourceIP = sourceIP.Remove(lastDotPos);
+
+            Console.WriteLine(sourceIP);
+            Ping Sender = new Ping();
+
+            for (int i = 1; i < 255; i++)
+            {
+                String ip = sourceIP + "." + i.ToString();
+                PingReply Result = Sender.Send(ip,500);
+                if (Result.Status == IPStatus.Success)
+                    Console.WriteLine("Erfolg:{0}",ip);
+            }
+
+            Console.WriteLine("Scan closed");
+         }
+
+
+        public static void SendMessageToActiveWindow(string message) 
         {
             SendKeys.SendWait(message);
 
@@ -172,7 +107,7 @@ namespace MAS_Client
         }
 
        
-        public static void getNetworkComputers()
+        public static void GetNetworkComputers()
         {
             IPGlobalProperties network = IPGlobalProperties.GetIPGlobalProperties();
             TcpConnectionInformation[] connections = network.GetActiveTcpConnections();
@@ -185,7 +120,7 @@ namespace MAS_Client
             }
         }
 
-        public static void setActiveWindow(int handle) 
+        public static void SetActiveWindow(int handle) 
         {
             IntPtr hWnd = new IntPtr(handle); 
             SetForegroundWindow(hWnd);
@@ -194,7 +129,7 @@ namespace MAS_Client
             
         }
 
-        public static int getHandleFromWindow(string title)
+        public static int GetHandleFromWindow(string title)
         {
             int hwnd = FindWindowEx(0, 0, 0, title);//where title is the windowtitle
 
@@ -208,7 +143,7 @@ namespace MAS_Client
             return hwnd;
         }
 
-        public static string getActiveWindowTitle()
+        public static void GetActiveWindowTitle()
         {
             const int nChars = 256;
             IntPtr handle = IntPtr.Zero;
@@ -217,26 +152,28 @@ namespace MAS_Client
 
             if (GetWindowText(handle, Buff, nChars) > 0)
             {
-                return Buff.ToString();
+                Byte[] prog = System.Text.Encoding.Unicode.GetBytes(Buff.ToString());
+                stream.Write(prog, 0, prog.Length);
             }
-            return null;
         }
 
-        public static string getOSPlatform()
+
+
+        public static void GetOSPlatform()
         {
             OperatingSystem os = Environment.OSVersion;
 
             PlatformID platform = os.Platform;
-
-            return platform.ToString();
+            Byte[] plat = ToNetStr(platform.ToString());
+            stream.Write(plat,0,plat.Length);
         }
 
-        public static void setWallpaper(string pathToFile)
+        public static void SetWallpaper(string pathToFile)
         {
             SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, pathToFile, SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE);
         }
 
-        public static string getWallpaper()
+        public static string GetWallpaper()
         {
             string wallpaper = new string('\0', MAX_PATH);
             SystemParametersInfo(SPI_GETDESKWALLPAPER, (int)wallpaper.Length, wallpaper, 0);
@@ -244,7 +181,7 @@ namespace MAS_Client
         }
 
 
-        public static void startProgram(string exe, Array args)
+        public static void StartProgram(string exe)
         {
             Process prog = new Process();
 
@@ -254,24 +191,57 @@ namespace MAS_Client
             prog.Start();
         }
 
-        public static void getOpenPrograms()
+        public static void GetOpenPrograms()
         {
+            string output = "";
             foreach (Process p in Process.GetProcesses("."))
             {
                 try
                 {
                     if (p.MainWindowTitle.Length > 0)
                     {
-                        Console.WriteLine("\r\n");
-                        Console.WriteLine("\r\n Window Title:" + p.MainWindowTitle.ToString());
-                        Console.WriteLine("\r\n Process Name:" + p.ProcessName.ToString());
-                        Console.WriteLine("\r\n Window Handle:" + p.MainWindowHandle.ToString());
-                        Console.WriteLine("\r\n Memory Allocation:" + p.PrivateMemorySize64.ToString());
-                        
+                        output += "\r\n";
+                        output +="\r\n Window Title:" + p.MainWindowTitle.ToString();
+                        output +="\r\n Process Name:" + p.ProcessName.ToString();
+                        output +="\r\n Window Handle:" + p.MainWindowHandle.ToString();
+                        output +="\r\n Memory Allocation:" + p.PrivateMemorySize64.ToString();
+                        output += "\r\n Process ID:" + p.Id.ToString();
                     }
                 }
                 catch { }
             }
+
+            output += "\0";
+            Byte[] data = System.Text.Encoding.Unicode.GetBytes(output);
+            stream.Write(data, 0, data.Length);
+        }
+
+
+        public static void KillProcess(string name)
+        {
+            Byte[] killed = System.Text.Encoding.Unicode.GetBytes("The processes were killed");
+            Byte[] notKilled = System.Text.Encoding.Unicode.GetBytes("There is no process named {" + name + "}");
+            
+
+            Process[] procs = Process.GetProcessesByName(name);
+
+            if (procs.Length == 0)
+            {
+                stream.Write(notKilled,0,notKilled.Length);
+            }
+            else
+            {
+                foreach( Process p in procs)   
+                p.Kill();
+
+                stream.Write(killed, 0, killed.Length);
+            }
+        }
+
+        // Turns an string to Byte[]
+        private static Byte[] ToNetStr(string text)
+        {
+            return System.Text.Encoding.Unicode.GetBytes(text);
         }
     }
 }
