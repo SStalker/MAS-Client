@@ -110,44 +110,37 @@ namespace MAS_Client
 
         private static void ExecuteCommand(String commandInput)
         {
-            String commandString = commandInput.Trim();
-            int spacePosition = commandString.IndexOf(' ');
+            String commandLine = commandInput.Trim();
+            int pos = commandLine.IndexOf(' ');
             String command;
             String[] commandArgs = null;
 
-            if (spacePosition == -1)
+            if (pos == -1)
             {
-                command = commandString;
+                command = commandLine;
             }
             else
             {
-                command = commandString.Substring(0, spacePosition);
-                commandArgs = commandString.Substring(spacePosition + 1).Split(' ');
+                command = commandLine.Substring(0, pos);
+                commandArgs = commandLine.Substring(pos + 1).Split(' ');
             }
 
-            try
+            bool foundMethod = false;
+            MethodInfo[] methods = typeof(Command).GetMethods();
+            foreach (MethodInfo method in methods)
             {
-                Console.WriteLine("Run cmd: " + commandString);
-                typeof(Command).GetMethod(command).Invoke(null, commandArgs);
+                ParameterInfo[] parameters = method.GetParameters();
+                int commandParamsCount = (pos == -1) ? 0 : commandArgs.Length;
+                if (method.Name.Equals(command) && commandParamsCount == parameters.Length)
+                {
+                    method.Invoke(null, commandArgs);
+                    foundMethod = true;
+                }
             }
-            catch (TargetParameterCountException e)
+
+            if (!foundMethod)
             {
-                Console.WriteLine(" -- Wrong parameter count");
-                Console.WriteLine(e.ToString());
-            }
-            catch (NullReferenceException e)
-            {
-                // No such command.
                 Console.WriteLine(" -- Command not found");
-                Console.WriteLine(e.ToString());
-            }
-            catch (AmbiguousMatchException e)
-            {
-                // This happens if the Command class contains a command two times with different
-                // parameters. To support this, we need to use "GetMethods()" instead of "GetMethod()"
-                // to receive all available methods.
-                Console.WriteLine(" -- Command not unique");
-                Console.WriteLine(e.ToString());
             }
         }
 
